@@ -623,7 +623,7 @@
         let minutes = Math.floor(restTimer.time / 60)
           .toString()
           .padStart(2, "0");
-        restTimer.element.textContent = `${minutes}:00`;
+        restTimer.element.textContent = `${minutes}:${seconds}`;
       }
       /////////////////////////////////////////////////////////
       ///// This function is used to reset all timers after a whole fights is completed and a new team is getting ready
