@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Timers</title>
+    <style>
+      .timer-container {
+        display: inline-block;
+        width: 100px;
+        text-align: center;
+        margin-right: 10px; /* Optional: for some space between timers */
+      }
+      .timer-box {
+        border: 2px solid black;
+        width: 100%;
+        height: 100px;
+        display: block;
+        text-align: center;
+        line-height: 100px;
+        font-size: 20px;
+      }
+      .switch-yes-no {
+        padding: 0;
+        margin: 15px 0 0;
+        background: #fff;
+        border-radius: 0;
+        background-image: none;
+      }
+      .switch-yes-no .switch-label {
+        box-shadow: none;
+        background: none;
+      }
+      .switch-yes-no .switch-label:after,
+      .switch-yes-no .switch-label:before {
+        width: 100%;
+        height: 70%;
+        top: 5px;
+        left: 0;
+        text-align: center;
+        padding-top: 10%;
+        box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.2),
+          inset 0 0 3px rgba(0, 0, 0, 0.1);
+      }
+      .switch-yes-no .switch-label:after {
+        color: #ffffff;
+        background: #32cd32;
+        backface-visibility: hidden;
+        transform: rotateY(180deg);
+      }
+      .switch-yes-no .switch-label:before {
+        background: #eceeef;
+        backface-visibility: hidden;
+      }
+      .switch-yes-no .switch-handle {
+        display: none;
+      }
+      .switch-yes-no .switch-input:checked ~ .switch-label {
+        background: #fff;
+        border-color: #0088cc;
+      }
+      .switch-yes-no .switch-input:checked ~ .switch-label:before {
+        transform: rotateY(180deg);
+      }
+      .switch-yes-no .switch-input:checked ~ .switch-label:after {
+        transform: rotateY(0);
+      }
+
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: 0.4s;
+        transition: 0.4s;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: 0.4s;
+        transition: 0.4s;
+      }
+
+      input:checked + .slider {
+        background-color: #2196f3;
+      }
+
+      input:focus + .slider {
+        box-shadow: 0 0 1px #2196f3;
+      }
+
+      input:checked + .slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+      }
+
+      /* Rounded sliders */
+      .slider.round {
+        border-radius: 10px;
+      }
+
+      .slider.round:before {
+        border-radius: 100%;
+      }
+
+      .timers-containers {
+        width: min-content;
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Creates two equal-width columns with no gap */
+        grid-template-rows: 1fr 1fr; /* Creates two equal-height rows */
+        gap: 10px 0; /* Adds a 10px horizontal gap (left to right), 0px vertical gap (top to bottom) */
+      }
+
+      .timer-container {
+        border: 0px solid #000; /* Optional: Add borders to the grid items for visual separation */
+        padding: 0px; /* Optional: Add padding for spacing within grid items */
+      }
+
+      .no-wrap {
+        white-space: nowrap;
+      }
+
+      .category-container {
+        display: flex;
+      }
+
+      .category-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .all-elements {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh; /* ensures the content is at least as tall as the viewport */
+      }
+
+      .timer-active {
+        background-color: green;
+      }
+
+      .choosen-category {
+        color: black;
+        padding: 10px;
+      }
+
+      button {
+        margin: 0 10px 15px 0; /* right margin 5px, bottom margin 15px */
+      }
+
+      #round-display {
+        padding: 20px; /* You can adjust the padding as needed */
+        /* Additional styling if needed */
+        background-color: #000000;
+        border-radius: 8px;
+        color: #ffffff;
+        margin-top: 2%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="all-elements">
+      <div class="category-container">
+        <label for="competition-type">Category:</label>
+        <select id="competition-type" onchange="setCompetitionType()">
+          <option value="" disabled selected>Choose option</option>
+          <option value="buhurt">Buhurt</option>
+          <option value="proFight">Pro Fight</option>
+          <option value="dueling">Dueling</option>
+        </select>
+      </div>
+
+      <div class="choosen-category" id="text-display"></div>
+
+      <div class="timers-containers">
+        <div class="timer-container" id="total-time-container">
+          <span class="no-wrap">Total Time</span>
+          <div id="Total Time competition" class="timer-box">11:11</div>
+        </div>
+
+        <div class="timer-container" id="round-time-container">
+          <span class="no-wrap">Round timer</span>
+          <div id="Round timer" class="timer-box">88:88</div>
+        </div>
+
+        <div class="timer-container" id="resting-time-container">
+          <span class="no-wrap">Resting time</span>
+          <div id="rest time" class="timer-box">66:66</div>
+        </div>
+
+        <div class="timer-container" id="injury-time-container">
+          <span class="no-wrap">Injury time</span>
+          <div id="Injury time" class="timer-box">33:33</div>
+        </div>
+        <div></div>
+      </div>
+      <span id="round-display">Round 1</span><br />
+      <!--span id="speed-display">Speed: 1x</span><br>-->
+      <button id="startButton" onclick="startTimers()">Start Timers</button>
+      <button onclick="pauseTimers()">Pause Timers</button>
+      <!--button onclick="increaseSpeed()">Speed Up</button>
+<button onclick="resetSpeed()">Reset Speed</button>-->
+      <button onclick="endRound()">Round End</button><br />
+      <button onclick="resetTimers()">Reset</button>
+      <button id="start-injury-button" onclick="startInjury()">
+        Injury timer start
+      </button>
+      <!--button id='stop-injury-button' onclick="stopInjury()">Injury timer stop</button>-->
+
+      <!-- below is switch for bypass rest timer -->
+      <h2>Bypass rest timer</h2>
+      <label class="switch">
+        <input id="switch1" type="checkbox" />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <script>
+      /////////////////////JS Below////////////
+
+      const competitionDefaults = {
+        //total time comp : 10, injury time: 5, rest time: 4, round time: 5
+        unknown: { total: 0, injury: 0, rest: 0, round: 0 },
+        buhurt: { total: 10, injury: 0.1, rest: 0.1, round: 0.1 },
+        proFight: { total: 7, injury: 2, rest: 1, round: 3 },
+        dueling: { total: 1.5, injury: 0.1, rest: 0.2, round: 0.3 },
+      };
+      ////////////////////////////////////////////////////////////////////////
+      // set the type of competition and its valua`s
+      ///////////////////////////////////////////////////////////////////////
+
+      document
+        .getElementById("competition-type")
+        .addEventListener("change", function () {
+          var value = this.value; // the value of the selected option
+          var label = this.options[this.selectedIndex].text; // the label of the selected option
+          console.log("Selected Value:", value);
+          console.log("Selected Label:", label);
+        });
+
+      function setCompetitionType() {
+        const selectedType = document.getElementById("competition-type").value;
+        let defaults = competitionDefaults[selectedType];
+        if (!defaults) {
+          defaults = competitionDefaults["unknown"];
+        }
+        document.getElementById("text-display").innerHTML =
+          document.getElementById("competition-type").options[
+            document.getElementById("competition-type").selectedIndex
+          ].text;
+        timers.find((t) => t.element.id === "Total Time competition").time =
+          defaults.total * 60;
+        timers.find((t) => t.element.id === "Injury time").time =
+          defaults.injury * 60;
+        timers.find((t) => t.element.id === "rest time").time =
+          defaults.rest * 60;
+        timers.find((t) => t.element.id === "Round timer").time =
+          defaults.round * 60;
+        TotalTimeComp = defaults.total * 60;
+        InjuryTime = defaults.injury * 60;
+        RestTimerDefault = defaults.rest * 60;
+        RoundTimer = defaults.round * 60;
+        RoundTimerDefault = RoundTimer;
+        roundTimer = RoundTimerDefault;
+
+        timers.forEach((timer) => {
+          const minutes = Math.floor(timer.time / 60)
+            .toString()
+            .padStart(2, "0");
+          const seconds = (timer.time % 60).toString().padStart(2, "0");
+          timer.element.textContent = `${minutes}:${seconds}`;
+        });
+
+        // If "buhurt" is selected, hide the "Injury time" element and its text
+        const injuryTimeElement = document.getElementById("Injury time");
+        const injuryTimeTextElement = document.querySelector(
+          'label[for="Injury time"]'
+        ); // Assuming you have a label element linked to the "Injury time"
+
+        document.getElementById("start-injury-button").style.display =
+          "inline-block";
+        document.getElementById("injury-time-container").style.display =
+          "inline-block";
+        if (selectedType === "buhurt") {
+          injuryTimeElement.style.display = "none";
+          document.getElementById("injury-time-container").style.display =
+            "none";
+          document.getElementById("start-injury-button").style.display = "none";
+
+          // Hide the label/text related to Injury time as well, check your HTML to be sure of the selector
+          if (injuryTimeTextElement) {
+            injuryTimeTextElement.style.display = "none";
+          }
+        } else {
+          injuryTimeElement.style.display = "block";
+          // Show the label/text related to Injury time again if it was hidden
+          if (injuryTimeTextElement) {
+            injuryTimeTextElement.style.display = "block";
+          }
+        }
+      }
+
+      let Buhurt;
+
+      let speed = 1;
+      let roundNumber = 1;
+
+      /////Set total competetion time////////
+      let TotalTimeComp = 0 * 60;
+      /////Set injury time////////
+      let InjuryTime = 0 * 60;
+      /// set rest time ////
+      let RestTimerDefault = 0 * 60;
+      //// Set round timer ////
+      let RoundTimer = 0 * 60;
+
+      //////////DONT TOUCH/////////////
+      let RoundTimerDefault = RoundTimer;
+      let roundTimer = RoundTimerDefault;
+
+      let switchValue = false; // or true, depending on your initial condition
+
+      // Find the button using its ID and assign it to a variable.
+      let startButton = document.getElementById("startButton");
+
+      // Function to enable or disable the start button based on the switch value.
+      function handleButtonState() {
+        if (switchValue) {
+          // If switch is true, enable the button.
+          startButton.removeAttribute("disabled");
+        } else {
+          // If switch is false, disable the button.
+          startButton.setAttribute("disabled", "true");
+        }
+      }
+
+      function setState(state) {
+        // use case
+        //setState(true)
+        //setState(false)
+        switchValue = state;
+        handleButtonState();
+      }
+
+      setState(true);
+
+      handleButtonState();
+
+      document
+        .getElementById("switch1")
+        .addEventListener("change", function (e) {
+          document.getElementById("startButton").disabled = !e.target.checked;
+        });
+
+      let timers = [
+        {
+          element: document.getElementById("Total Time competition"),
+          time: TotalTimeComp,
+        },
+        { element: document.getElementById("Injury time"), time: InjuryTime },
+        {
+          element: document.getElementById("rest time"),
+          time: RestTimerDefault,
+        },
+        { element: document.getElementById("Round timer"), time: RoundTimer },
+      ];
+
+      function markContainerAsActive(id) {
+        const element = document.getElementById(id);
+        element.classList.add("timer-active");
+      }
+
+      function unmarkContainerAsActive(id) {
+        const element = document.getElementById(id);
+        element.classList.remove("timer-active");
+      }
+
+      function updateTimer(timer) {
+        console.log("update timer", timer);
+        timer.time -= 1 * speed;
+        let restTimerValue = RestTimerDefault;
+        let minutes = Math.floor(timer.time / 60)
+          .toString()
+          .padStart(2, "0");
+        let seconds = (timer.time % 60).toString().padStart(2, "0");
+        timer.element.textContent = `${minutes}:${seconds}`;
+        // Check if the time reaches 0 or below
+        if (timer.time <= 0) {
+          console.log("TIMER HIT 0");
+          stopInjury();
+          resetInjury(timer);
+        }
+
+        // Checking if Round timer is zero and performing the appropriate actions
+        if (timer.element.id === "Round timer" && timer.time <= 0) {
+          pauseTimers();
+          roundNumber += 1;
+          document.getElementById(
+            "round-display"
+          ).textContent = `Round ${roundNumber}`;
+
+          // Reset the round timer to its default
+          timer.time = RoundTimerDefault;
+          let minutes = Math.floor(timer.time / 60)
+            .toString()
+            .padStart(2, "0");
+          let seconds = (timer.time % 60).toString().padStart(2, "0");
+          timer.element.textContent = `${minutes}:${seconds}`;
+
+          // Reset the rest timer to its default
+          timer.timeRest = RestTimerDefault;
+          let minutes1 = Math.floor(timer.timeRest / 60)
+            .toString()
+            .padStart(2, "0");
+          let seconds1 = (timer.time % 60).toString().padStart(2, "0");
+          timer.element.textContent = `${minutes1}:${seconds1}`;
+
+          startRestTimer();
+        }
+        // Checking if Rest timer is zero and resetting it to its default value
+        if (timer.element.id === "rest time" && timer.time <= 0) {
+          pauseTimers();
+          timer.time = RestTimerDefault; // Reset the rest timer to RestTimerDefualt
+          minutes = Math.floor(timer.time / 60)
+            .toString()
+            .padStart(2, "0");
+          seconds = (timer.time % 60).toString().padStart(2, "0");
+          timer.element.textContent = `${minutes}:${seconds}`; // Update the rest timer display
+
+          // Resetting round timer
+          let roundTimer = timers.find((t) => t.element.id === "Round timer");
+          roundTimer.time = roundTimer.defaultTime
+            ? roundTimer.defaultTime
+            : RoundTimerDefault;
+          minutes = Math.floor(roundTimer.time / 60)
+            .toString()
+            .padStart(2, "0");
+          seconds = (roundTimer.time % 60).toString().padStart(2, "0");
+          roundTimer.element.textContent = `${minutes}:${seconds}`;
+        }
+      }
+      /////// Reset for new round ///////////
+      function resetForNewRound() {
+        let restTimer = timers.find((t) => t.element.id === "rest time");
+        restTimer.time = restInput; // Reset the rest timer to 6 minutes
+        restTimer.element.textContent = RestTimerDefault; // Update the rest timer display
+
+        let roundTimer = timers.find((t) => t.element.id === "Round timer");
+        roundTimer.time = RoundInput; // Reset the round timer
+        roundTimer.element.textContent = RoundTimerDefault; // Update the round timer display
+      }
+
+      ///////Start timers ///////////
+      function startTimers() {
+        ["Total Time competition", "Round timer"].forEach((id) => {
+          let timer = timers.find((t) => t.element.id === id);
+          if (!timer.interval) {
+            timer.interval = setInterval(() => {
+              updateTimer(timer);
+            }, 1000);
+          }
+        });
+        setState(false);
+        stopRestTimer();
+        stopInjury();
+        resetInjury();
+
+        markContainerAsActive("Round timer");
+        markContainerAsActive("Total Time competition");
+        unmarkContainerAsActive("rest time");
+        unmarkContainerAsActive("Injury time");
+      }
+
+      ///////////// PAUSE TIMERS /////////////
+      function pauseTimers() {
+        timers.forEach((timer) => {
+          clearInterval(timer.interval);
+          timer.interval = null;
+        });
+        setState(true);
+        unmarkContainerAsActive("Round timer");
+        unmarkContainerAsActive("Total Time competition");
+        unmarkContainerAsActive("rest time");
+        unmarkContainerAsActive("Injury time");
+      }
+
+      ///////// Rest timers //////////
+      function startRestTimer() {
+        let restTimer = timers.find((t) => t.element.id === "rest time");
+        if (!restTimer.interval) {
+          restTimer.interval = setInterval(() => {
+            updateTimer(restTimer);
+          }, 1000);
+        }
+        unmarkContainerAsActive("Round timer");
+        unmarkContainerAsActive("Total Time competition");
+        markContainerAsActive("rest time");
+        unmarkContainerAsActive("Injury time");
+      }
+
+      function stopRestTimer() {
+        console.log("STOP REST TIMER");
+        let timer = timers.find((t) => t.element.id === "rest time");
+        if (timer.interval) {
+          console.log("PAUSE");
+          clearInterval(timer.interval);
+          timer.interval = null;
+          setRestTimer();
+        }
+      }
+      //////////////////////////////////////////////////
+      ///////// INJURY TIMERS //////////
+      /////////////////////////////////////////////////
+      function stopInjury() {
+        console.log("STOP INJURTY");
+        let timer = timers.find((t) => t.element.id === "Injury time");
+        if (timer.interval) {
+          console.log("PAUSE");
+          clearInterval(timer.interval);
+          timer.interval = null;
+          timer.element.textContent = timeConvert(timer.time);
+        }
+      }
+
+      function resetInjury() {
+        console.log("RESET");
+        let timer = timers.find((t) => t.element.id === "Injury time");
+        // Reset the time to its initial value
+        timer.time = InjuryTime;
+        timer.element.textContent = timeConvert(timer.time);
+        // Update UI accordingly if needed
+      }
+
+      function startInjury() {
+        let restTimer = timers.find((t) => t.element.id === "Injury time");
+        pauseTimers();
+        if (!restTimer.interval) {
+          restTimer.interval = setInterval(() => {
+            updateTimer(restTimer);
+          }, 1000);
+        }
+        unmarkContainerAsActive("Round timer");
+        unmarkContainerAsActive("Total Time competition");
+        unmarkContainerAsActive("rest time");
+        markContainerAsActive("Injury time");
+      }
+
+      /////////////////////////////////////
+      // Actions to do when pressing button Round End
+      ////////////////////////////////////
+      function endRound() {
+        console.log(endRound);
+        // reset round timer and rest timer
+        ["Round timer", "Total Time competition"].forEach((id) => {
+          let timer = timers.find((t) => t.element.id === id);
+          clearInterval(timer.interval);
+          timer.interval = null;
+          startRestTimer();
+        });
+        // Get the 'Total Time competition' timer
+        let totalTimeCompetitionTimer = timers.find(
+          (t) => t.element.id === "Total Time competition"
+        );
+
+        // Check if the 'Total Time competition' is equal to default round time or below
+        let newRoundTime;
+        if (totalTimeCompetitionTimer.time <= RoundTimerDefault) {
+          newRoundTime = totalTimeCompetitionTimer.time;
+        } else {
+          newRoundTime = RoundTimerDefault; // Or any other desired default time for a new round
+        }
+
+        // Reset the 'Round timer'
+        let roundTimer = timers.find((t) => t.element.id === "Round timer");
+        roundTimer.time = newRoundTime;
+        let minutes = Math.floor(roundTimer.time / 60)
+          .toString()
+          .padStart(2, "0");
+        let seconds = (roundTimer.time % 60).toString().padStart(2, "0");
+        roundTimer.element.textContent = `${minutes}:${seconds}`;
+
+        // Increment the round number
+        roundNumber += 1;
+        document.getElementById(
+          "round-display"
+        ).textContent = `Round ${roundNumber}`;
+
+        // Set and immediately pause the 'Rest timer'
+        setRestTimer();
+        // startRestTimer();
+        return;
+      }
+
+      function setRestTimer() {
+        //let restTimerValue = document.getElementById('rest-timer-input').value;
+        let restTimer = timers.find((t) => t.element.id === "rest time");
+        restTimer.time = RestTimerDefault;
+        let minutes = Math.floor(restTimer.time / 60)
+          .toString()
+          .padStart(2, "0");
+        restTimer.element.textContent = `${minutes}:00`;
+      }
+      /////////////////////////////////////////////////////////
+      ///// This function is used to reset all timers after a whole fights is completed and a new team is getting ready
+      ////////////////////////////////////////////////////////
+      function resetTimers() {
+        console.log("RESET");
+        pauseTimers(); // Pause all timers
+        speed = 1; // Reset speed
+        roundNumber = 1; // Reset round number
+        ///document.getElementById('speed-display').textContent = `Speed: ${speed}x`;
+        document.getElementById("round-display").textContent = `Round 1`;
+        timers.forEach((timer) => {
+          switch (timer.element.id) {
+            case "Total Time competition":
+              timer.time = TotalTimeComp;
+              timer.element.textContent = timeConvert(timer.time);
+              break;
+            case "Injury time":
+              timer.time = InjuryTime;
+              timer.element.textContent = timeConvert(timer.time);
+              break;
+            case "rest time":
+              timer.time = RestTimerDefault;
+              timer.element.textContent = timeConvert(timer.time);
+              break;
+            case "Round timer":
+              timer.time = RoundTimerDefault;
+              timer.element.textContent = timeConvert(timer.time);
+              break;
+          }
+        });
+      }
+
+      function timeConvert(time) {
+        const minutes = Math.floor(time / 60)
+          .toString()
+          .padStart(2, "0");
+        const seconds = (time % 60).toString().padStart(2, "0");
+        return `${minutes}:${seconds}`;
+      }
+
+      setCompetitionType();
+      resetTimers();
+    </script>
+  </body>
+</html>
